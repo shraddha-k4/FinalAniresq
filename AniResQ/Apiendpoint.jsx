@@ -14,5 +14,8 @@ export const Auth_forgotpassword = `${baseUrl}/api/auth/forgotpassword`;
 export const Auth_verifyotp = `${baseUrl}/api/auth/verifyotp`;
 export const Auth_profile = `${baseUrl}/api/auth/getProfile`;  //get profile
 export const Auth_update_profile =`${baseUrl}/api/auth/updateprofile`;
-export const Create_Report = `${baseUrl}/api/auth/reportcreate`;
-
+//Report
+export const Create_Report = `${baseUrl}/api/reports/create`;
+export const My_Report = `${baseUrl}/api/reports/my`;
+export const Get_Report_By_Id = (id) =>`${baseUrl}/api/reports/${id}`;
+export const Get_all_report = `${baseUrl}/api/reports/all`;

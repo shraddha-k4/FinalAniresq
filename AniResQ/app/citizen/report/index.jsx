@@ -115,33 +115,65 @@ export default function ReportForm() {
 
     if (image) {
       formData.append("image", {
-        uri: image,
-        name: "incident.jpg",
-        type: "image/jpeg",
-      });
+  uri: image,
+  name: "photo.jpg",
+  type: "image/jpeg",
+});
+
     }
+
+    // try {
+    //   const response = await fetch(Create_Report, {
+    //     method: "POST",
+    //     headers: {
+    //       Authorization: `Bearer ${token}`,
+    //       },
+    //      body: formData,
+    //   });
+
+    //   const data = await response.json();
+    //   // console.log("API RESPONSE:", data);
+
+    //   if (!response.ok) {
+    //     throw new Error(data.message);
+    //   }
+
+    //   router.push("/citizen/report/success");
+    // } catch (err) {
+    //   console.log("SUBMIT ERROR:", err.message);
+    //   Alert.alert("Error", err.message);
+    // }
 
     try {
-      const response = await fetch(Create_Report, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+  const response = await fetch(Create_Report, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
 
-      const data = await response.json();
-      // console.log("API RESPONSE:", data);
+  const text = await response.text();
+  console.log("RAW RESPONSE:", text);
 
-      if (!response.ok) {
-        throw new Error(data.message);
-      }
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error("Server JSON error");
+  }
 
-      router.push("/citizen/report/success");
-    } catch (err) {
-      console.log("SUBMIT ERROR:", err.message);
-      Alert.alert("Error", err.message);
-    }
+  if (!response.ok) {
+    throw new Error(data.message || "Failed");
+  }
+
+  router.push("/citizen/report/success");
+
+} catch (err) {
+  console.log("SUBMIT ERROR:", err.message);
+  Alert.alert("Error", err.message);
+}
+
   };
 
   return (

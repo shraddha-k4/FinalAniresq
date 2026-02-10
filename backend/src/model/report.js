@@ -41,10 +41,19 @@ const reportSchema = new mongoose.Schema(
       type: String, // image path
     },
 
+    
     status: {
       type: String,
+      enum: ["pending", "accepted", "resolved"],
       default: "pending",
     },
+
+    acceptedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User", // NGO user
+      default: null,
+    },
+
   },
   { timestamps: true }
 );

@@ -1,6 +1,6 @@
 import express from "express";
 import { forgotPassword, getMyProfile, login, signup, updateMyProfile, verifyOTP } from "../controller/authcontroller.js";
-import authMiddleware from "../middleware/authmiddleware.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
 import { createReport, getAllReports, getMyReports, getReportById } from "../controller/reportController.js";
 
@@ -20,11 +20,11 @@ authrouter.post("/verifyotp", verifyOTP);
 authrouter.get("/getProfile",authMiddleware,getMyProfile);
 //update profile
 authrouter.put("/updateprofile",authMiddleware,upload.single("image"),updateMyProfile);
-//report create
-authrouter.post("/reportcreate",authMiddleware,upload.single("image"),createReport);
+// //report create
+// //authrouter.post("/reportcreate",authMiddleware,upload.single("image"),createReport);
 
-authrouter.get("/allreportcase", authMiddleware, getAllReports);      // admin / authority
-authrouter.get("/myreport", authMiddleware, getMyReports);        // citizen
+// authrouter.get("/allreportcase", authMiddleware, getAllReports);      // admin / authority
+// authrouter.get("/myreport", authMiddleware, getMyReports);        // citizen
 // authrouter.get("/:idreport", authMiddleware, getReportById);      // single report
 
 

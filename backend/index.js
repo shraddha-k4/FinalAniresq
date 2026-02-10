@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { connectDB } from './src/config/mongodb.js';
 import authrouter from './src/route/authroute.js';
+import router from './src/route/reportroute.js';
 
 
 
@@ -16,7 +17,7 @@ connectDB();
 
 //auth
 app.use("/api/auth",authrouter);
-
+app.use("/api/reports", router);
 
 
 app.use('/',(req,res)=>{
