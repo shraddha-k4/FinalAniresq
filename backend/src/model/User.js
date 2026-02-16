@@ -29,13 +29,10 @@ const userSchema = new mongoose.Schema(
             enum: ["citizen", "ngo","admin"],
             default: "citizen",
         },
-        // address: {
-        //     city: { type: String },
-        //     dist:{type:String},
-        //     state: { type: String },
-        //     pincode: { type: Number },
-        //     country: { type: String, default: "India" },
-        // },
+        isBlacklisted: {
+            type: Boolean,
+            default: false
+        },
          address: {
         latitude: Number,
         longitude: Number,
@@ -44,7 +41,7 @@ const userSchema = new mongoose.Schema(
             type: String, 
         },
         regiid: {
-            type: Number,
+            type: String,
             required: false,
             default: null,
             },

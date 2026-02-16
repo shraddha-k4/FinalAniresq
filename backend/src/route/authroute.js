@@ -1,8 +1,8 @@
 import express from "express";
 import { forgotPassword, getMyProfile, login, signup, updateMyProfile, verifyOTP } from "../controller/authcontroller.js";
-import authMiddleware from "../middleware/authMiddleware.js";
+import authMiddleware from "../middleware/authmiddleware.js";
 import upload from "../middleware/upload.js";
-import { createReport, getAllReports, getMyReports, getReportById } from "../controller/reportController.js";
+
 
 const authrouter = express.Router();
 

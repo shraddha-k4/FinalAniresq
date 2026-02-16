@@ -1,5 +1,3 @@
-// NGOManagement.jsx
-
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -10,40 +8,22 @@ import {
   Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const dummyNGOs = [
-  {
-    id: 1,
-    name: "WildCare Foundation",
-    location: "Pune",
-    lastRescueDays: 5,
-    totalRescues: 42,
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "Animal Shield NGO",
-    location: "Mumbai",
-    lastRescueDays: 18,
-    totalRescues: 30,
-    status: "Flagged",
-  },
-  {
-    id: 3,
-    name: "Green Paws Rescue",
-    location: "Nashik",
-    lastRescueDays: 22,
-    totalRescues: 12,
-    status: "Blacklisted",
-  },
-];
+import {
+  Admin_Get_NGO_Users,
+  Admin_Blacklist_User,
+  Admin_Delete_User,
+} from "../../Apiendpoint.jsx"; // path adjust करा
 
 export default function NGOManagement() {
-  const [ngos, setNgos] = useState(dummyNGOs);
+  const [ngos, setNgos] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    fetchNGOs();
+
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 800,
@@ -51,17 +31,70 @@ export default function NGOManagement() {
     }).start();
   }, []);
 
-  const toggleBlacklist = (id) => {
-    const updated = ngos.map((ngo) =>
-      ngo.id === id
-        ? {
-            ...ngo,
-            status:
-              ngo.status === "Blacklisted" ? "Active" : "Blacklisted",
-          }
-        : ngo
-    );
-    setNgos(updated);
+  // FETCH NGO USERS
+  const fetchNGOs = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+
+      const res = await fetch(Admin_Get_NGO_Users, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        const formatted = data.users.map((u) => ({
+          id: u._id,
+          name: u.name,
+          location: u.address?.country || "Unknown",
+          totalRescues: 0,
+          lastRescueDays: 0,
+          status: u.isBlacklisted ? "Blacklisted" : "Active",
+        }));
+
+        setNgos(formatted);
+      }
+    } catch (error) {
+      console.log("Fetch NGO error:", error);
+    }
+  };
+
+  // BLACKLIST NGO
+  const toggleBlacklist = async (id) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+
+      await fetch(Admin_Blacklist_User(id), {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      fetchNGOs();
+    } catch (error) {
+      console.log("Blacklist error:", error);
+    }
+  };
+
+  // DELETE NGO (optional — जर button add केला तर use)
+  const deleteUser = async (id) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+
+      await fetch(Admin_Delete_User(id), {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      fetchNGOs();
+    } catch (error) {
+      console.log("Delete error:", error);
+    }
   };
 
   return (
@@ -83,6 +116,7 @@ export default function NGOManagement() {
               }
             >
               <Text style={styles.name}>{ngo.name}</Text>
+
               <Text style={styles.location}>
                 📍 {ngo.location}
               </Text>
@@ -92,9 +126,6 @@ export default function NGOManagement() {
                   styles.status,
                   ngo.status === "Blacklisted" && {
                     color: "#ff4d4d",
-                  },
-                  ngo.status === "Flagged" && {
-                    color: "#ffcc00",
                   },
                 ]}
               >
@@ -110,12 +141,6 @@ export default function NGOManagement() {
                 <Text style={styles.detailText}>
                   Last Rescue: {ngo.lastRescueDays} days ago
                 </Text>
-
-                {ngo.lastRescueDays > 15 && (
-                  <Text style={styles.warning}>
-                    ⚠ Inactive for more than 15 days
-                  </Text>
-                )}
               </View>
             )}
 
@@ -137,16 +162,17 @@ export default function NGOManagement() {
     </LinearGradient>
   );
 }
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+
   heading: {
     fontSize: 28,
     fontWeight: "bold",
     color: "#fff",
     marginBottom: 20,
   },
+
   glassCard: {
     backgroundColor: "rgba(255,255,255,0.08)",
     padding: 20,
@@ -159,42 +185,45 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 10,
   },
+
   name: {
     fontSize: 18,
     fontWeight: "600",
     color: "#fff",
   },
+
   location: {
     color: "#ccc",
     marginVertical: 4,
   },
+
   status: {
     fontWeight: "bold",
     color: "#4CAF50",
   },
+
   detailsBox: {
     marginTop: 12,
     backgroundColor: "rgba(255,255,255,0.1)",
     padding: 12,
     borderRadius: 15,
   },
+
   detailText: {
     color: "#ddd",
     marginBottom: 4,
   },
-  warning: {
-    color: "#ffcc00",
-    marginTop: 5,
-    fontWeight: "bold",
-  },
+
   buttonContainer: {
     marginTop: 15,
   },
+
   blacklistBtn: {
     backgroundColor: "#ff4d4d",
     padding: 10,
     borderRadius: 12,
   },
+
   btnText: {
     color: "#fff",
     textAlign: "center",
