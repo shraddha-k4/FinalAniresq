@@ -42,9 +42,14 @@ const reportSchema = new mongoose.Schema(
     },
 
     
-    status: {
+   status: {
       type: String,
       enum: ["Pending", "Accepted", "InProgress","Complete"],
+      default: "Pending",
+    },
+    adminStatus: {
+      type: String,
+      enum: ["Pending", "True", "Fake"],
       default: "Pending",
     },
 

@@ -107,7 +107,7 @@ export default function ManageUsers() {
   return (
     <LinearGradient colors={["#141E30", "#243B55"]} style={styles.container}>
       <ScrollView contentContainerStyle={{ padding: 20 }}>
-        <Text style={styles.heading}>Manage Users</Text>
+        <Text style={styles.heading}>Manage Citizen</Text>
 
         <TextInput
           placeholder="Search users..."

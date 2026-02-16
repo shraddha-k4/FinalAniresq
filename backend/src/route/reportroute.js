@@ -32,4 +32,7 @@ router.put("/accept/:id", authMiddleware, acceptReport);
 // NGO accepted reports
 router.get("/accepted/list", authMiddleware, getAcceptedReports);
 
+
+
+
 export default router;

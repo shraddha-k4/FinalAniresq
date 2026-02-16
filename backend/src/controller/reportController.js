@@ -69,6 +69,41 @@ export const getMyReports = async (req, res) => {
 };
 
 
+
+export const deleteFakeReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const report = await Report.findById(id);
+
+    if (!report) {
+      return res.status(404).json({
+        message: "Report not found",
+      });
+    }
+
+    // Only delete if Fake
+    if (report.adminStatus !== "Fake") {
+      return res.status(400).json({
+        message: "Only fake reports can be deleted",
+      });
+    }
+
+    await report.deleteOne();
+
+    res.json({
+      message: "Fake report deleted successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+
+
 export const getAllReports = async (req, res) => {
   try {
     const reports = await Report.find()
@@ -84,6 +119,30 @@ export const getAllReports = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const updateAdminStatus = async (req, res) => {
+  try {
+  
+    const { adminStatus } = req.body;
+
+    const report = await Report.findById(req.params.id);
+    if (!report)
+      return res.status(404).json({ message: "Report not found" });
+
+    report.adminStatus = adminStatus;
+    await report.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Admin status updated",
+      report,
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 
 export const getReportById = async (req, res) => {
@@ -104,140 +163,6 @@ export const getReportById = async (req, res) => {
   }
 };
 
-
-// import Report from "../model/report.js";
-// import Notification from "../model/notification.js";
-// import User from "../model/user.js";
-// import cloudinary from "../config/cloudinary.js";
-
-
-// // ✅ CREATE REPORT + NGO NOTIFICATION
-// export const createReport = async (req, res) => {
-//   try {
-//     const {
-//       incidentDate,
-//       address,
-//       latitude,
-//       longitude,
-//       animalType,
-//       behavior,
-//       injured,
-//       humanHarm,
-//     } = req.body;
-
-//     let imageUrl = null;
-
-//     // Upload image to cloudinary
-//     if (req.file) {
-//       const uploadResult = await cloudinary.uploader.upload(
-//         `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
-//         { folder: "reports" }
-//       );
-
-//       imageUrl = uploadResult.secure_url;
-//     }
-
-//     // Create report
-//     const report = await Report.create({
-//       user: req.user._id,
-//       incidentDate,
-//       address,
-//       location: {
-//         latitude,
-//         longitude,
-//       },
-//       animalType,
-//       behavior,
-//       injured,
-//       humanHarm,
-//       image: imageUrl,
-//       status: "pending",
-//     });
-
-//     // 🔥 Notify all NGOs
-//     const ngos = await User.find({ role: "ngo" });
-
-//     const notifications = ngos.map((ngo) => ({
-//       receiver: ngo._id,
-//       report: report._id,
-//       message: "New animal incident reported",
-//     }));
-
-//     await Notification.insertMany(notifications);
-
-//     res.status(201).json({
-//       success: true,
-//       message: "Report created successfully",
-//       report,
-//     });
-
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-
-
-// // ✅ USER REPORTS
-// export const getMyReports = async (req, res) => {
-//   try {
-//     const reports = await Report.find({ user: req.user._id })
-//       .sort({ createdAt: -1 });
-
-//     res.status(200).json({
-//       success: true,
-//       count: reports.length,
-//       reports,
-//     });
-
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-
-
-// // ✅ ALL REPORTS (ADMIN/NGO)
-// export const getAllReports = async (req, res) => {
-//   try {
-//     const reports = await Report.find()
-//       .populate("user", "name email")
-//       .populate("acceptedBy", "name email")
-//       .sort({ createdAt: -1 });
-
-//     res.status(200).json({
-//       success: true,
-//       count: reports.length,
-//       reports,
-//     });
-
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-
-
-// // ✅ SINGLE REPORT
-// export const getReportById = async (req, res) => {
-//   try {
-//     const report = await Report.findById(req.params.id)
-//       .populate("user", "name email")
-//       .populate("acceptedBy", "name email");
-
-//     if (!report) {
-//       return res.status(404).json({ message: "Report not found" });
-//     }
-
-//     res.status(200).json({
-//       success: true,
-//       report,
-//     });
-
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
 
 
 // ✅ NGO ACCEPT REPORT

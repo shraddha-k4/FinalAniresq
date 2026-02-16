@@ -28,3 +28,5 @@ export const Admin_Delete_User = (id) =>`${baseUrl}/api/admin/user/${id}`;
 export const Admin_Get_Blacklisted=`${baseUrl}/api/admin/getblacklist`;
 export const Admin_Unblacklist_User=(id)=>`${baseUrl}/api/admin/unblacklist/${id}`;
 export const Admin_Dashboard_Stats = `${baseUrl}/api/admin/dashboardstats`;
+export const Admin_Update_Report_Status = (id) =>`${baseUrl}/api/admin/reports/${id}/admin-status`;
+export const Admin_Delete_Report=(id)=>`${baseUrl}/api/admin/delete-report/${id}`;
