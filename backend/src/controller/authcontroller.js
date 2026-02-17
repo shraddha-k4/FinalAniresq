@@ -326,3 +326,53 @@ if (longitude !== undefined && (longitude < -180 || longitude > 180)) {
   }
 };
 
+
+// // GET ALL NGOs
+// export const getAllNGOs = async (req, res) => {
+//   try {
+//     const ngos = await User.find({ role: "ngo" }).select("-password");
+
+//     if (!ngos.length) {
+//       return res.status(404).json({ message: "No NGOs found" });
+//     }
+
+//     res.status(200).json({
+//       message: "NGOs fetched successfully",
+//       count: ngos.length,
+//       ngos,
+//     });
+
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({
+//       message: "Server error",
+//       error: error.message,
+//     });
+//   }
+// };
+// GET ALL NGOs (exclude blacklisted)
+export const getAllNGOs = async (req, res) => {
+  try {
+    const ngos = await User.find({
+      role: "ngo",
+      isBlacklisted: false, // 👉 blacklisted exclude
+    }).select("-password");
+
+    if (!ngos.length) {
+      return res.status(404).json({ message: "No NGOs found" });
+    }
+
+    res.status(200).json({
+      message: "NGOs fetched successfully",
+      count: ngos.length,
+      ngos,
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};

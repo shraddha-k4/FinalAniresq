@@ -47,12 +47,10 @@ export default function AllReportedCasesScreen() {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={30} color="#fff" />
-        </TouchableOpacity>
+    
+       
         <Text style={styles.headerTitle}>All Reported Cases</Text>
-      </View>
+     
 
       {/* Search */}
       <View style={styles.searchBox}>
@@ -132,10 +130,10 @@ export default function AllReportedCasesScreen() {
 
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F4F6FA" },
+  container: { flex: 1, backgroundColor: "#f5f9f6" },
 
   header: {
-    backgroundColor: "#2E7D32",
+    color:"green",
     paddingTop:14,
     paddingBottom: 20,
     paddingHorizontal: 16,
@@ -144,14 +142,15 @@ const styles = StyleSheet.create({
   },
   backText: { fontSize: 18, color: "#fff" },
   headerTitle: {
-    textAlign: "center",
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#fff",
-  },
+   fontSize: 26,
+    fontWeight: "bold",
+    color: "green",
+    marginBottom: 10,
+    paddingLeft:10, 
+   },
   logo: { width: 36, height: 36, borderRadius: 6 },
 
-  searchBox: { padding: 16 },
+  searchBox: { padding: 10 },
   searchInput: {
     backgroundColor: "#fff",
     borderRadius: 14,
@@ -166,9 +165,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: "#2E7D32",
   },
-  activeTab: { backgroundColor: "#fff" },
+  activeTab: { backgroundColor: "#fff"},
   tabText: { color: "#fff", fontWeight: "600" },
-  activeTabText: { color: "#2E7D32", fontWeight: "700" },
+  activeTabText: { color: "#2E7D32", fontWeight: "700", },
 
   statsRow: { flexDirection: "row", padding: 16, gap: 16 },
   statCard: {

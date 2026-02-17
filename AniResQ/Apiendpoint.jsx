@@ -5,7 +5,7 @@ import { Platform } from "react-native";
 export const baseUrl =
   Platform.OS === "web"
     ? "http://localhost:3000"
-    : "http://10.237.216.119:3000"; 
+    : "http://10.134.38.119:3000"; 
 
 
 export const Auth_signup = `${baseUrl}/api/auth/signup`;
@@ -14,6 +14,7 @@ export const Auth_forgotpassword = `${baseUrl}/api/auth/forgotpassword`;
 export const Auth_verifyotp = `${baseUrl}/api/auth/verifyotp`;
 export const Auth_profile = `${baseUrl}/api/auth/getProfile`;  //get profile
 export const Auth_update_profile =`${baseUrl}/api/auth/updateprofile`;
+export const Auth_Get_NGO = `${baseUrl}/api/auth/ngos`;//get ngo
 //Report
 export const Create_Report = `${baseUrl}/api/reports/create`;
 export const My_Report = `${baseUrl}/api/reports/my`;

@@ -1,5 +1,5 @@
 import express from "express";
-import { forgotPassword, getMyProfile, login, signup, updateMyProfile, verifyOTP } from "../controller/authcontroller.js";
+import { forgotPassword, getAllNGOs, getMyProfile, login, signup, updateMyProfile, verifyOTP } from "../controller/authcontroller.js";
 import authMiddleware from "../middleware/authmiddleware.js";
 import upload from "../middleware/upload.js";
 
@@ -20,8 +20,8 @@ authrouter.post("/verifyotp", verifyOTP);
 authrouter.get("/getProfile",authMiddleware,getMyProfile);
 //update profile
 authrouter.put("/updateprofile",authMiddleware,upload.single("image"),updateMyProfile);
-
-
+//get all ngo 
+authrouter.get("/ngos",authMiddleware, getAllNGOs);
 // Protected route example
 authrouter.get("/profile", authMiddleware, (req, res) => {
   res.json({
