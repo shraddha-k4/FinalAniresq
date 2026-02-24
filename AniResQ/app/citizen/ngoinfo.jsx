@@ -182,6 +182,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingTop: 0,
     marginTop: -20,
+    marginBottom:60,
   },
 
   header: {
@@ -221,6 +222,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginVertical: 10,
     elevation: 4,
+       
   },
 
   image: {

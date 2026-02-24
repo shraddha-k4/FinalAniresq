@@ -102,7 +102,8 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionCard}>
+        <TouchableOpacity style={styles.actionCard}
+        onPress={() => router.push("/citizen/AI_alert")}>
           <Ionicons name="alert-circle" size={28} color="#FB8C00" />
           <View style={styles.actionText}>
             <Text style={styles.actionTitle}>Wildlife Alerts</Text>

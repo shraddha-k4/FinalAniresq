@@ -13,7 +13,7 @@ export default function Layout() {
           borderTopRightRadius: 20,
           height: 65
         },
-        tabBarActiveTintColor: "#6b7cf6",
+        tabBarActiveTintColor: "green",
       }}
     >
       <Tabs.Screen
@@ -39,9 +39,9 @@ export default function Layout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: "Setting",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+            <Ionicons name="settings-outline" size={size} color={color} />
           ),
         }}
       />

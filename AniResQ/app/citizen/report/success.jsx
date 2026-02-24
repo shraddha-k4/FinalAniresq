@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function SuccessScreen() {
   const scale = useRef(new Animated.Value(0)).current;
-
+  const { reportId } = useLocalSearchParams();
   useEffect(() => {
     Animated.spring(scale, {
       toValue: 1,
@@ -29,9 +29,22 @@ export default function SuccessScreen() {
           <Text style={styles.pending}>● Pending Review</Text>
         </View>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.primaryBtn}
-          onPress={() => router.push("/cases")}
+          onPress={() => router.push("/citizen/reportDetails")}
+        >
+          <Text style={styles.primaryText}>Track My Report</Text>
+        </TouchableOpacity> */}
+
+     <TouchableOpacity
+          style={styles.primaryBtn}
+          disabled={!reportId}
+          onPress={() =>
+            router.push({
+              pathname: "/citizen/reportDetails",
+              params: { id: reportId },
+            })
+          }
         >
           <Text style={styles.primaryText}>Track My Report</Text>
         </TouchableOpacity>
@@ -128,3 +141,4 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 });
+

@@ -165,7 +165,6 @@ export const getReportById = async (req, res) => {
 
 
 
-// ✅ NGO ACCEPT REPORT
 export const acceptReport = async (req, res) => {
   try {
     const report = await Report.findById(req.params.id);
@@ -174,13 +173,13 @@ export const acceptReport = async (req, res) => {
       return res.status(404).json({ message: "Report not found" });
 
     // Already accepted check
-    if (report.status === "accepted") {
+    if (report.status === "Accepted") {
       return res.status(400).json({
         message: "Already accepted by another NGO",
       });
     }
 
-    report.status = "accepted";
+    report.status = "Accepted";   // ✅ FIXED
     report.acceptedBy = req.user._id;
 
     await report.save();
@@ -195,7 +194,6 @@ export const acceptReport = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 
 // ✅ NGO ACCEPTED REPORTS
@@ -231,6 +229,112 @@ export const getMyNotifications = async (req, res) => {
     });
 
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+export const getReportsByRadius = async (req, res) => {
+  try {
+    let { latitude, longitude, radius } = req.query;
+
+    latitude = parseFloat(latitude);
+    longitude = parseFloat(longitude);
+    radius = parseFloat(radius);
+
+    if (!latitude || !longitude || !radius) {
+      return res.status(400).json({
+        message: "Latitude, Longitude and Radius are required",
+      });
+    }
+
+    const reports = await Report.find({
+      adminStatus: "Pending",  // adjust if needed
+      status: "Pending",
+      acceptedBy: null,
+      "location.latitude": {
+        $gte: latitude - radius / 111000,
+        $lte: latitude + radius / 111000,
+      },
+      "location.longitude": {
+        $gte: longitude - radius / 111000,
+        $lte: longitude + radius / 111000,
+      },
+    }).populate("user", "name email");
+
+    res.status(200).json({
+      success: true,
+      count: reports.length,
+      reports,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateAcceptedReport = async (req, res) => {
+  try {
+    const { status, description, veterinaryNotes } = req.body;
+
+    const report = await Report.findById(req.params.id);
+
+    if (!report) {
+      return res.status(404).json({ message: "Report not found" });
+    }
+
+    // ✅ Only NGO who accepted can update
+    if (
+      !report.acceptedBy ||
+      report.acceptedBy.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        message: "Not authorized to update this report",
+      });
+    }
+
+    // ✅ Upload Multiple Files
+    let mediaUrls = [];
+
+    if (req.files && req.files.length > 0) {
+      for (let file of req.files) {
+        const uploadResult = await cloudinary.uploader.upload(
+          `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
+          { folder: "report-updates" }
+        );
+
+        mediaUrls.push(uploadResult.secure_url);
+      }
+    }
+
+    // ✅ If update already exists → overwrite it
+    if (report.updates.length > 0) {
+      report.updates[0] = {
+        status,
+        description,
+        veterinaryNotes,
+        media: mediaUrls,
+        updatedAt: new Date(),
+      };
+    } else {
+      // First time create
+      report.updates.push({
+        status,
+        description,
+        veterinaryNotes,
+        media: mediaUrls,
+      });
+    }
+
+    await report.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Report updated successfully",
+      report,
+    });
+
+  } catch (error) {
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 };

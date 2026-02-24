@@ -1,304 +1,285 @@
-import React, { useEffect, useState } from "react";
+import React, { useState , useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  Image,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
+  Switch,
+  Alert,
 } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons, Feather } from "@expo/vector-icons";
+import { Auth_profile } from "../../../Apiendpoint.jsx";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Location from "expo-location";
-import { Auth_profile } from "../../../Apiendpoint.jsx";
 
-/* ---------- DATE FORMAT ---------- */
-const formatDate = (dateString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-};
-
-export default function Profile() {
+export default function SettingsScreen() {
+  const [push, setPush] = useState(true);
+  const [email, setEmail] = useState(true);
+  const [report, setReport] = useState(true);
+  const [volunteer, setVolunteer] = useState(true);
+  const [emergency, setEmergency] = useState(true);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [addressText, setAddressText] = useState("");
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  /* ---------- FETCH PROFILE ---------- */
   const fetchProfile = async () => {
     try {
       const token = await AsyncStorage.getItem("token");
-      if (!token) return;
 
-      const res = await fetch(Auth_profile, {
+      const response = await fetch(Auth_profile, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
       });
 
-      const data = await res.json();
-      setUser(data.user);
+      const data = await response.json();
+      // console.log("Profile Data:", data);
 
-      // Convert latitude/longitude to address
-      if (data.user?.address?.latitude && data.user?.address?.longitude) {
-        const addr = await Location.reverseGeocodeAsync({
-          latitude: data.user.address.latitude,
-          longitude: data.user.address.longitude,
-        });
-
-        if (addr.length > 0) {
-          const place = addr[0];
-          setAddressText(
-            `${place.city || ""}, ${place.region || ""}, ${
-              place.country || ""
-            }`
-          );
-        }
+      if (response.ok) {
+        setUser(data.user); // or data depending on backend
+      } else {
+        console.log("Unauthorized:", data);
       }
-    } catch (err) {
-      console.log("Profile error:", err);
-    } finally {
-      setLoading(false);
+
+    } catch (error) {
+      console.log("Profile Error:", error);
     }
   };
 
-  /* ---------- LOADING ---------- */
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
+  fetchProfile();
+}, []);
 
+const handleLogout = () => {
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel" },
+      {
+        text: "Yes",
+        onPress: async () => {
+          await AsyncStorage.removeItem("token");
+          router.replace("/"); 
+        },
+      },
+    ]);
+  };
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <Ionicons
-          name="arrow-back"
-          size={26}
-          color="black"
-          onPress={() => router.replace("/ngo/tab/home")}
-        />
-        <Text style={styles.headerTitle}>Profile</Text>
-      </View>
+      <Text style={styles.header}>Settings</Text>
 
-      {/* PROFILE CARD */}
-      <View style={styles.profileCard}>
-        <Image
-          source={
-            user?.image
-              ? { uri: user.image }
-              : require("../../../assets/image/profile.png")
+      {/* NGO Info */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>NGO Information</Text>
+
+        <View style={styles.row}>
+          <MaterialIcons name="business" size={22} color="#2e7d32" />
+          <View style={{ marginLeft: 10 }}>
+            <Text style={styles.mainText}>{user?.name}</Text>
+            <Text style={styles.subText}>{user?.email}</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.linkRow}
+         onPress={() => {
+          if (user) {
+            router.push({
+              pathname: "/ngo/EditProfile",
+              params: { user: JSON.stringify(user) },
+            });
           }
-          style={styles.profileImg}
-        />
-        <Text style={styles.name}>{user?.name}</Text>
-        <Text style={styles.role}>{user?.role}</Text>
+        }}>
+          <Feather name="edit" size={20} color="#2e7d32" />
+          <Text style={styles.linkText}>Edit Profile</Text>
+          <Ionicons name="chevron-forward" size={20} color="#9ccc65" />
+        </TouchableOpacity>
+
+
+
       </View>
 
-      {/* INFO CARD */}
-      <View style={styles.infoCard}>
-        <InfoRow icon="mail" text={user?.email} />
-        <InfoRow icon="call" text={String(user?.mobileno || "")} />
-        <InfoRow icon="location-on" text={addressText || "-"} />
-        <InfoRow
-          icon="calendar-today"
-          text={`Joined on ${formatDate(user?.createdAt)}`}
-        />
+      {/* Notification Preferences */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Notification Preferences</Text>
+
+        {renderSwitch(
+          "Push Notifications",
+          "Receive push notifications on your device",
+          push,
+          setPush
+        )}
+
+        {renderSwitch(
+          "Email Notifications",
+          "Receive notifications via email",
+          email,
+          setEmail
+        )}
+
+        {renderSwitch(
+          "Report Updates",
+          "Get notified when reports are updated",
+          report,
+          setReport
+        )}
+
+        {renderSwitch(
+          "Volunteer Requests",
+          "Get notified of new volunteer applications",
+          volunteer,
+          setVolunteer
+        )}
+
+        {renderSwitch(
+          "Emergency Alerts",
+          "Receive urgent notifications for critical cases",
+          emergency,
+          setEmergency
+        )}
       </View>
 
-       {/* REGISTRATION ID */}
-       {user?.regiid ? (
-         <>
-           <Text style={styles.sectionTitle}>Registration ID</Text>
-           <View style={styles.aboutCard}>
-             <Text style={styles.aboutText}>{user.regiid}</Text>
-           </View>
-         </>
-       ) : null}
+      {/* App Settings */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>App Settings</Text>
 
-       {/* ABOUT US */}
-       {user?.aboutus ? (
-         <>
-           <Text style={styles.sectionTitle}>About Us</Text>
-           <View style={styles.aboutCard}>
-             <Text style={styles.aboutText}>{user.aboutus}</Text>
-           </View>
-         </>
-       ) : null}
+        {renderNavItem("Dashboard")}
+        {renderNavItem("Statistics")}
+        {renderNavItem("Reports")}
+        {renderNavItem("Volunteers")}
+      </View>
 
-       {/* OUR MISSION */}
-       {user?.mission ? (
-         <>
-           <Text style={styles.sectionTitle}>Our Mission</Text>
-           <View style={styles.aboutCard}>
-             <Text style={styles.aboutText}>{user.mission}</Text>
-           </View>
-         </>
-       ) : null}
+      {/* Advanced Settings */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Advanced Settings</Text>
 
+        {renderNavItem("Reset All Settings")}
+        {renderNavItem("About")}
+      </View>
 
-
-      {/* EDIT PROFILE */}
-      <TouchableOpacity
-        style={styles.editBtn}
-        onPress={() =>
-          router.push({
-            pathname: "/ngo/EditProfile",
-            params: { user: JSON.stringify(user) },
-          })
-        }
-      >
-        <Text style={styles.editText}>Edit Profile</Text>
+      {/* Sign Out */}
+      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+        <Ionicons name="log-out-outline" size={20} color="#fff" />
+        <Text style={styles.logoutText}>Sign Out</Text>
       </TouchableOpacity>
 
-      {/* LOGOUT */}
-      <TouchableOpacity
-        style={styles.logoutBtn}
-        onPress={async () => {
-          await AsyncStorage.removeItem("token");
-          router.replace("/");
-        }}
-      >
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
+      <View style={{ height: 40 }} />
     </ScrollView>
   );
 }
 
-/* ---------- INFO ROW ---------- */
-const InfoRow = ({ icon, text }) => (
-  <View style={styles.infoRow}>
-    <MaterialIcons name={icon} size={22} color="#6B7280" />
-    <Text style={styles.infoText}>{text || "-"}</Text>
-  </View>
-);
+function renderSwitch(title, subtitle, value, setValue) {
+  return (
+    <View style={styles.switchRow}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.mainText}>{title}</Text>
+        <Text style={styles.subText}>{subtitle}</Text>
+      </View>
 
-/* ---------- STYLES ---------- */
+      <Switch
+        value={value}
+        onValueChange={setValue}
+        trackColor={{ false: "#c8e6c9", true: "#66bb6a" }}
+        thumbColor={value ? "#2e7d32" : "#f4f3f4"}
+      />
+    </View>
+  );
+}
+
+function renderNavItem(title) {
+  return (
+    <TouchableOpacity style={styles.navRow}>
+      <Text style={styles.mainText}>{title}</Text>
+      <Ionicons name="chevron-forward" size={20} color="#9ccc65" />
+    </TouchableOpacity>
+  );
+}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
-    padding: 14,
+    backgroundColor: "#f1f8f4",
+    padding: 16,
   },
 
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#1b5e20",
+    marginBottom: 15,
   },
 
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginLeft: 10,
-    padding:10,
-    color: "#1B1B1B",
-  },
-
-  profileCard: {
-    backgroundColor: "#2E7D32",
-    borderRadius: 28,
-    padding: 24,
-    alignItems: "center",
-    marginBottom: 16,
-  },
-
-  profileImg: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    marginBottom: 12,
-  },
-
-  name: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "900",
-  },
-
-  role: {
-    color: "#EDE9FE",
-    fontSize: 14,
-  },
-
-  infoCard: {
-    backgroundColor: "#F9FAFB",
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 12,
-  },
-
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 8,
-  },
-
-  infoText: {
-    marginLeft: 12,
-    fontSize: 15,
-    color: "#374151",
+  card: {
+    backgroundColor: "#ffffff",
+    borderRadius: 18,
+    padding: 15,
+    marginBottom: 15,
+    elevation: 4,
   },
 
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    marginVertical: 12,
-    color: "#111827",
-  },
-
-  aboutCard: {
-    backgroundColor: "#F9FAFB",
-    borderRadius: 16,
-    padding: 16,
-  },
-
-  aboutText: {
-    fontSize: 15,
-    color: "#374151",
-    lineHeight: 22,
-  },
-
-  editBtn: {
-    backgroundColor: "#2E7D32",
-    padding: 16,
-    borderRadius: 14,
-    alignItems: "center",
-    marginTop: 20,
-  },
-
-  editText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "700",
+    color: "#2e7d32",
+    marginBottom: 10,
+  },
+
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+
+  mainText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#263238",
+  },
+
+  subText: {
+    fontSize: 13,
+    color: "#78909c",
+    marginTop: 2,
+  },
+
+  linkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+  },
+
+  linkText: {
+    flex: 1,
+    marginLeft: 10,
+    fontWeight: "600",
+    color: "#2e7d32",
+  },
+
+  switchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+
+  navRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 12,
   },
 
   logoutBtn: {
-    backgroundColor: "#E5E7EB",
-    padding: 16,
-    borderRadius: 14,
+    backgroundColor: "#2e7d32",
+    padding: 14,
+    borderRadius: 30,
+    flexDirection: "row",
+    justifyContent: "center",
     alignItems: "center",
-    marginTop: 12,
-    marginBottom: 40,
+    marginTop: 10,
+    elevation: 4,
   },
 
   logoutText: {
-    fontSize: 16,
+    color: "#fff",
     fontWeight: "700",
-    color: "#111827",
+    marginLeft: 8,
+    fontSize: 16,
   },
 });

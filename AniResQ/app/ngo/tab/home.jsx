@@ -1,206 +1,174 @@
-// import React, { useState } from "react";
-// import {
-//   View,
-//   Text,
-//   StyleSheet,
-//   Image,
-//   ScrollView,
-//   TouchableOpacity,
-// } from "react-native";
-// import { SafeAreaView } from "react-native-safe-area-context";
-// import { useRouter } from "expo-router";
-
-// export default function Home() {
-//   const router = useRouter();
-
-//   // temporary user state (replace with API later)
-//   const [user] = useState(null);
-
-//   return (
-//     <SafeAreaView style={{ flex: 1, backgroundColor: "#2434b1" }}>
-//       {/* <ScrollView contentContainerStyle={styles.container}> */}
-
-//         {/* Header */}
-//         <View style={styles.header}>
-//           <View style={styles.logoContainer}>
-//             <Image
-//               source={require("../../../assets/aniresq.png")}
-//               style={styles.logoImage}
-//             />
-//             <Text style={styles.logoText}>AniResQ</Text>
-//           </View>
-
-//           <TouchableOpacity onPress={() => router.push("/ngo/tab/profile")}>
-//             <Image
-//               source={
-//                 user?.image
-//                   ? { uri: user.image }
-//                   : require("../../../assets/image/profile.png")
-//               }
-//               style={styles.profileImage}
-//             />
-//           </TouchableOpacity>
-//         </View>
-//       <ScrollView contentContainerStyle={styles.container}>
-//         {/* Welcome Card */}
-//         <View style={styles.headerCard}>
-//           <Text style={styles.title}>Saahas For Animals</Text>
-//           <Text style={styles.welcome}>Welcome Back!</Text>
-//           <Text style={styles.subtitle}>
-//             Together we're making a difference in our community
-//           </Text>
-//         </View>
-
-//         {/* Stats */}
-//         <View style={styles.statCard}>
-//           <Text style={styles.statNo}>0</Text>
-//           <Text style={styles.statText}>Total Cases Undertaken</Text>
-//         </View>
-
-//         <View style={styles.statCard}>
-//           <Text style={styles.statNo}>0</Text>
-//           <Text style={styles.statText}>Successfully Completed</Text>
-//         </View>
-
-//         <View style={styles.statCard}>
-//           <Text style={styles.statNo}>0</Text>
-//           <Text style={styles.statText}>Currently Ongoing</Text>
-//         </View>
-
-//         <Image
-//           source={{
-//             uri: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800",
-//           }}
-//           style={styles.bigImage}
-//         />
-//       </ScrollView>
-//     </SafeAreaView>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: { padding: 16 },
-
-//   header: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     alignItems: "center",
-//     padding: 8,
-//     elevation: 1,
-//     backgroundColor: "#2434b1",
-//   },
-
-//   logoContainer: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//   },
-
-//   logoImage: {
-//     width: 70,
-//     height:60,
-//     marginRight: 8,
-//   },
-
-//   logoText: {
-//     fontSize: 25,
-//     fontWeight: "700",
-//     color: "#f0f4f0",
-//   },
-
-//   profileImage: {
-//     width: 40,
-//     height: 40,
-//     borderRadius: 20,
-//   },
-
-//   headerCard: {
-//     backgroundColor: "#8f9cf7",
-//     borderRadius: 20,
-//     padding: 20,
-//     marginBottom: 16,
-//   },
-
-//   title: { color: "#fff", fontSize: 22, fontWeight: "700" },
-//   welcome: {
-//     color: "#fff",
-//     fontSize: 26,
-//     fontWeight: "800",
-//     marginTop: 10,
-//   },
-//   subtitle: { color: "#eef", marginTop: 6 },
-
-//   statCard: {
-//     backgroundColor: "#9aa6f9",
-//     borderRadius: 18,
-//     padding: 20,
-//     marginBottom: 12,
-//   },
-
-//   statNo: { fontSize: 36, fontWeight: "800", color: "#fff" },
-//   statText: { color: "#eef" },
-
-//   bigImage: {
-//     width: "100%",
-//     height: 200,
-//     borderRadius: 20,
-//     marginVertical: 16,
-//   },
-// });
-
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  Image,
-  ScrollView,
   TouchableOpacity,
   Alert,
+  FlatList,
+  Image,
+  ScrollView,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import MapView, { Marker, Circle } from "react-native-maps";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import axios from "axios";
+import * as Location from "expo-location";
+import {
+  Get_Report_By_Radius,
+  NGO_Singleaccept_report,
+  Auth_profile
+} from "../../../Apiendpoint.jsx";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function Home() {
-  const router = useRouter();
-  const [user] = useState(null);
+export default function ReportsList() {
 
-  const [cases, setCases] = useState([
-    {
-      id: 1,
-      title: "Injured Street Dog",
-      location: "Shivajinagar",
-      status: "Pending",
-    },
-    {
-      id: 2,
-      title: "Bird with Broken Wing",
-      location: "Wagholi",
-      status: "Pending",
-    },
-  ]);
+  const mapRef = useRef(null);
 
-  const updateStatus = (id, newStatus) => {
-    const updated = cases.map((item) =>
-      item.id === id ? { ...item, status: newStatus } : item
-    );
-    setCases(updated);
-    Alert.alert(`Case ${newStatus}`, `Case has been ${newStatus}.`);
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [selectedRadius, setSelectedRadius] = useState(5000);
+  const [reports, setReports] = useState([]);
+  const [loadingId, setLoadingId] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) return;
+
+      const res = await fetch(Auth_profile, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      setUser(data.user);
+    } catch (err) {
+      console.log("Home profile error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const getLiveLocation = async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission Denied", "Enable location permission");
+      return;
+    }
+
+    const location = await Location.getCurrentPositionAsync({});
+    const { latitude, longitude } = location.coords;
+
+    setCurrentLocation({ latitude, longitude });
+
+    mapRef.current?.animateToRegion({
+      latitude,
+      longitude,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
+    });
+
+    fetchReports(latitude, longitude, selectedRadius);
+  };
+
+  const fetchReports = async (lat, lng, radiusValue) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+
+      const response = await axios.get(
+        `${Get_Report_By_Radius}?latitude=${lat}&longitude=${lng}&radius=${radiusValue}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setReports(response.data.reports);
+    } catch (error) {
+      console.log(error.response?.data || error.message);
+      Alert.alert("Error", "Failed to fetch reports");
+    }
+  };
+
+  const handleRadiusChange = (radiusKm) => {
+    const radiusMeters = radiusKm * 1000;
+    setSelectedRadius(radiusMeters);
+
+    if (currentLocation) {
+      const delta = radiusKm / 100;
+
+      mapRef.current?.animateToRegion({
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+        latitudeDelta: delta,
+        longitudeDelta: delta,
+      });
+
+      fetchReports(
+        currentLocation.latitude,
+        currentLocation.longitude,
+        radiusMeters
+      );
+    }
+  };
+
+  const handleAccept = async (reportId) => {
+    try {
+      setLoadingId(reportId);
+
+      const token = await AsyncStorage.getItem("token");
+
+      await axios.put(
+        NGO_Singleaccept_report(reportId),
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      Alert.alert("Success", "Report Accepted Successfully");
+
+      setReports((prev) =>
+        prev.filter((report) => report._id !== reportId)
+      );
+    } catch (error) {
+      console.log(error.response?.data || error.message);
+      Alert.alert("Error", "Failed to accept report");
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  useEffect(() => {
+    getLiveLocation();
+  }, []);
+
+  if (!currentLocation) return null;
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F6FF" }}>
-      
-      {/* HEADER */}
+    <View style={styles.container}>
+      {/* ===== HEADER ===== */}
       <View style={styles.header}>
         <View style={styles.logoContainer}>
           <Image
             source={require("../../../assets/aniresq.png")}
-            style={styles.logoImage}
+            style={styles.logo}
+            resizeMode="contain"
           />
-          <Text style={styles.logoText}>AniResQ NGO</Text>
+          <Text style={styles.title}>AniResQ</Text>
         </View>
 
-        <TouchableOpacity onPress={() => router.push("/ngo/profile")}>
+        <TouchableOpacity>
           <Image
             source={
               user?.image
@@ -212,273 +180,288 @@ export default function Home() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.container}>
-        
-        {/* DASHBOARD CARD */}
-        <View style={styles.headerCard}>
-          <Text style={styles.dashboardTitle}>NGO Dashboard</Text>
-          <Text style={styles.dashboardSub}>
-            Manage and respond to animal rescue reports
-          </Text>
+      {/* ===== SCROLLABLE CONTENT ===== */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }}>
+        <Text style={styles.subText}>
+          {reports.length} available reports
+        </Text>
+
+        <View style={styles.toggleContainer}>
+          <TouchableOpacity style={styles.activeTab}>
+            <Ionicons name="location-outline" size={18} color="#fff" />
+            <Text style={styles.activeText}> Available Reports</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.inactiveTab}>
+            <MaterialIcons name="assignment" size={18} color="#2e7d32" />
+            <Text style={styles.inactiveText}> Assigned Reports</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* STATS */}
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNo}>{cases.length}</Text>
-            <Text style={styles.statText}>Total Reports</Text>
-          </View>
+        <View style={styles.mapContainer}>
+          <MapView
+            ref={mapRef}
+            style={styles.map}
+            initialRegion={{
+              latitude: currentLocation.latitude,
+              longitude: currentLocation.longitude,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05,
+            }}
+            showsUserLocation
+          >
+            <Marker coordinate={currentLocation} />
 
-          <View style={styles.statCard}>
-            <Text style={styles.statNo}>
-              {cases.filter((c) => c.status === "Accepted").length}
-            </Text>
-            <Text style={styles.statText}>Accepted</Text>
-          </View>
+            {reports.map((report) => (
+              <Marker
+                key={report._id}
+                coordinate={{
+                  latitude: report.location.latitude,
+                  longitude: report.location.longitude,
+                }}
+                title={report.animalType}
+                description={report.address}
+              />
+            ))}
 
-          <View style={styles.statCard}>
-            <Text style={styles.statNo}>
-              {cases.filter((c) => c.status === "Rejected").length}
-            </Text>
-            <Text style={styles.statText}>Rejected</Text>
+            <Circle
+              center={currentLocation}
+              radius={selectedRadius}
+              strokeColor="#2e7d32"
+              fillColor="rgba(46,125,50,0.2)"
+            />
+          </MapView>
+        </View>
+
+        <View style={styles.radiusContainer}>
+          <Text style={styles.radiusTitle}>Search Radius:</Text>
+          <View style={styles.radiusBtns}>
+            {[2, 5, 10, 25].map((km) => {
+              const meters = km * 1000;
+              return (
+                <TouchableOpacity
+                  key={km}
+                  style={
+                    selectedRadius === meters
+                      ? styles.radiusActive
+                      : styles.radiusBtn
+                  }
+                  onPress={() => handleRadiusChange(km)}
+                >
+                  <Text
+                    style={
+                      selectedRadius === meters
+                        ? styles.radiusActiveText
+                        : styles.radiusText
+                    }
+                  >
+                    {km} km
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
-        {/* SECTION TITLE */}
-        <Text style={styles.sectionTitle}>Recent Reported Cases</Text>
+        {reports.length === 0 ? (
+          <View style={styles.bottomSection}>
+            <Ionicons name="map-outline" size={40} color="#a5d6a7" />
+            <Text style={styles.noReportsText}>
+              Available Reports (0)
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={reports}
+            keyExtractor={(item) => item._id}
+            scrollEnabled={false} // disable inner scroll so ScrollView handles it
+            style={{ marginTop: 20 }}
+            renderItem={({ item }) => (
+              <View style={styles.reportCard}>
+                <Text style={styles.reportTitle}>
+                  {item.animalType.toUpperCase()}
+                </Text>
+                
+                <Image
+                  source={{ uri: item.image }}
+                  style={styles.animalImage}
+                />
+                <Text>{item.address}</Text>
+                <Text>Behavior: {item.behavior}</Text>
+                <Text>Injured: {item.injured}</Text>
 
-        {/* CASE LIST */}
-        {cases.map((item) => (
-          <View key={item.id} style={styles.caseCard}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.caseTitle}>{item.title}</Text>
-              <Text style={styles.caseLocation}>📍 {item.location}</Text>
-
-              <View
-                style={[
-                  styles.statusBadge,
-                  item.status === "Accepted" && styles.accepted,
-                  item.status === "Rejected" && styles.rejected,
-                  item.status === "Pending" && styles.pending,
-                ]}
-              >
-                <Text style={styles.statusText}>{item.status}</Text>
-              </View>
-            </View>
-
-            {item.status === "Pending" && (
-              <View style={styles.buttonRow}>
                 <TouchableOpacity
                   style={styles.acceptBtn}
-                  onPress={() => updateStatus(item.id, "Accepted")}
+                  onPress={() => handleAccept(item._id)}
+                  disabled={loadingId === item._id}
                 >
-                  <Text style={styles.btnText}>Accept</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.rejectBtn}
-                  onPress={() => updateStatus(item.id, "Rejected")}
-                >
-                  <Text style={styles.btnText}>Reject</Text>
+                  <Text style={{ color: "#fff", fontWeight: "600" }}>
+                    {loadingId === item._id ? "Accepting..." : "Accept"}
+                  </Text>
                 </TouchableOpacity>
               </View>
             )}
-          </View>
-        ))}
-
-        <Image
-          source={{
-            uri: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800",
-          }}
-          style={styles.bigImage}
-        />
+          />
+        )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 18,
+    flex: 1,
+    backgroundColor: "#f1f8f4",
   },
-
   header: {
+    marginTop:4,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 12,
-    backgroundColor: "#4A55E2",
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
+    paddingHorizontal: 15,
+    paddingVertical: 15,
+    paddingBottom:4,
+    elevation: 4,
+    backgroundColor: "#f1f8f4",
+    zIndex: 100, // ensures header is above ScrollView
   },
-
   logoContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
-
-  logoImage: {
+  logo: {
     width: 60,
-    height: 50,
+    height: 60,
     marginRight: 8,
   },
-
-  logoText: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#fff",
+  title: {
+    fontSize: 26,
+    fontWeight: "bold",
+    color: "#1b5e20",
   },
-
   profileImage: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    borderWidth: 2,
-    borderColor: "#fff",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
-
-  headerCard: {
-    backgroundColor: "#6C79FF",
-    borderRadius: 25,
-    padding: 22,
-    marginTop: 20,
-    marginBottom: 25,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-
-  dashboardTitle: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#fff",
-  },
-
-  dashboardSub: {
-    color: "#EEF1FF",
-    marginTop: 6,
+  subText: {
+    marginTop: 10,
+    color: "#4caf50",
     fontSize: 14,
+    paddingHorizontal: 15,
   },
-
-  statsRow: {
+  toggleContainer: {
+    flexDirection: "row",
+    marginTop: 15,
+    backgroundColor: "#e8f5e9",
+    borderRadius: 12,
+    padding: 5,
+    marginHorizontal: 15,
+  },
+  activeTab: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#2e7d32",
+    padding: 10,
+    borderRadius: 10,
+  },
+  inactiveTab: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+  },
+  activeText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  inactiveText: {
+    color: "#2e7d32",
+    fontWeight: "600",
+  },
+  mapContainer: {
+    marginTop: 15,
+    borderRadius: 20,
+    overflow: "hidden",
+    marginHorizontal: 15,
+  },
+  map: {
+    width: "100%",
+    height: 250,
+  },
+  radiusContainer: {
+    marginTop: 15,
+    marginHorizontal: 15,
+  },
+  radiusTitle: {
+    fontWeight: "600",
+    marginBottom: 8,
+    color: "#1b5e20",
+  },
+  radiusBtns: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 25,
   },
-
-  statCard: {
-    backgroundColor: "#FFFFFF",
+  radiusBtn: {
+    borderWidth: 1,
+    borderColor: "#a5d6a7",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
     borderRadius: 20,
-    padding: 18,
-    width: "31%",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 4,
   },
-
-  statNo: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#4A55E2",
-  },
-
-  statText: {
-    color: "#777",
-    marginTop: 4,
-    fontSize: 12,
-  },
-
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#333",
-    marginBottom: 14,
-  },
-
-  caseCard: {
-    backgroundColor: "#FFFFFF",
+  radiusActive: {
+    backgroundColor: "#66bb6a",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
     borderRadius: 20,
-    padding: 18,
-    marginBottom: 16,
-    flexDirection: "row",
+  },
+  radiusText: {
+    color: "#2e7d32",
+    fontWeight: "600",
+  },
+  radiusActiveText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  bottomSection: {
+    marginTop: 40,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 5,
   },
-
-  caseTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#333",
-  },
-
-  caseLocation: {
-    color: "#777",
-    marginTop: 4,
-    fontSize: 13,
-  },
-
-  statusBadge: {
+  noReportsText: {
     marginTop: 10,
-    paddingVertical: 5,
-    paddingHorizontal: 14,
-    borderRadius: 30,
-    alignSelf: "flex-start",
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#4caf50",
   },
-
-  statusText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "700",
+  reportCard: {
+    backgroundColor: "#ffffff",
+    padding: 15,
+    borderRadius: 15,
+    marginBottom: 10,
+    marginHorizontal: 15,
+    elevation: 3,
   },
-
-  accepted: {
-    backgroundColor: "#4CAF50",
+  reportTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1b5e20",
+    marginBottom: 5,
   },
-
-  rejected: {
-    backgroundColor: "#E53935",
-  },
-
-  pending: {
-    backgroundColor: "#FFA726",
-  },
-
-  buttonRow: {
-    justifyContent: "center",
-    marginLeft: 10,
-  },
-
-  acceptBtn: {
-    backgroundColor: "#4CAF50",
-    paddingVertical: 7,
-    paddingHorizontal: 14,
-    borderRadius: 25,
-    marginBottom: 8,
-  },
-
-  rejectBtn: {
-    backgroundColor: "#E53935",
-    paddingVertical: 7,
-    paddingHorizontal: 14,
-    borderRadius: 25,
-  },
-
-  btnText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 12,
-  },
-
-  bigImage: {
+  animalImage: {
     width: "100%",
-    height: 170,
-    borderRadius: 20,
-    marginTop: 20,
+    height: 180,
+    borderRadius: 12,
+    marginBottom: 8,
+    resizeMode: "cover",
+  },
+  acceptBtn: {
+    marginTop: 10,
+    backgroundColor: "#2e7d32",
+    padding: 8,
+    borderRadius: 10,
+    alignItems: "center",
   },
 });
