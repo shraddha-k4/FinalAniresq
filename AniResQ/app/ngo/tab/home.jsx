@@ -19,11 +19,12 @@ import {
   Auth_profile
 } from "../../../Apiendpoint.jsx";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 
 export default function ReportsList() {
 
   const mapRef = useRef(null);
-
+  const router = useRouter();
   const [currentLocation, setCurrentLocation] = useState(null);
   const [selectedRadius, setSelectedRadius] = useState(5000);
   const [reports, setReports] = useState([]);
@@ -192,10 +193,14 @@ export default function ReportsList() {
             <Text style={styles.activeText}> Available Reports</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.inactiveTab}>
-            <MaterialIcons name="assignment" size={18} color="#2e7d32" />
-            <Text style={styles.inactiveText}> Assigned Reports</Text>
-          </TouchableOpacity>
+         
+        <TouchableOpacity 
+          style={styles.inactiveTab}
+          onPress={() => router.push("/ngo/VolunteerRequest")}
+        >
+          <MaterialIcons name="assignment" size={18} color="#2e7d32" />
+          <Text style={styles.inactiveText}> Volunteer Request</Text>
+        </TouchableOpacity>
         </View>
 
         <View style={styles.mapContainer}>

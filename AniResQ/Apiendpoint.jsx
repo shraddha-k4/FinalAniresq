@@ -15,6 +15,7 @@ export const Auth_verifyotp = `${baseUrl}/api/auth/verifyotp`;
 export const Auth_profile = `${baseUrl}/api/auth/getProfile`;  //get profile
 export const Auth_update_profile =`${baseUrl}/api/auth/updateprofile`;
 export const Auth_Get_NGO = `${baseUrl}/api/auth/ngos`;//get ngo
+export const GetAllUserinfo =`${baseUrl}/api/auth/all-users`; //get all users
 //Report
 export const Create_Report = `${baseUrl}/api/reports/create`;
 export const My_Report = `${baseUrl}/api/reports/my`;
@@ -35,3 +36,7 @@ export const Admin_Unblacklist_User=(id)=>`${baseUrl}/api/admin/unblacklist/${id
 export const Admin_Dashboard_Stats = `${baseUrl}/api/admin/dashboardstats`;
 export const Admin_Update_Report_Status = (id) =>`${baseUrl}/api/admin/reports/${id}/admin-status`;
 export const Admin_Delete_Report=(id)=>`${baseUrl}/api/admin/delete-report/${id}`;
+//Volunteer Api
+export const sendVolunteerRequest= `${baseUrl}/api/volunteer/send`;
+export const getNgoRequests = `${baseUrl}/api/volunteer/ngo-requests`;
+export const updateRequestStatus=(id)=> `${baseUrl}/api/volunteer/update/${id}`;

@@ -141,16 +141,25 @@ export default function Cases() {
                 </View>
               </View>
 
-              <View style={styles.buttonInside}>
-                <TouchableOpacity
-                  style={styles.primaryBtn}
-                  onPress={() =>
-                    router.push(`/ngo/update-status?id=${report._id}`)
-                  }
-                >
-                  <Text style={styles.primaryText}>Update Case</Text>
-                </TouchableOpacity>
-              </View>
+<View style={styles.buttonRow}>
+  <TouchableOpacity
+    style={[styles.btn, styles.secondaryBtn]}
+    onPress={() =>
+      router.push(`/ngo/CaseDetails?id=${report._id}`)
+    }
+  >
+    <Text style={styles.secondaryText}>View Details</Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity
+    style={[styles.btn, styles.primaryBtn]}
+    onPress={() =>
+      router.push(`/ngo/update-status?id=${report._id}`)
+    }
+  >
+    <Text style={styles.primaryText}>Update Case</Text>
+  </TouchableOpacity>
+</View>
             </View>
           ))
         )}
@@ -168,6 +177,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     elevation: 4,
   },
+  buttonRow: {
+  flexDirection: "row",
+  paddingHorizontal: 15,
+  paddingVertical: 20,
+},
+
+btn: {
+  flex: 1,                // 🔥 makes both equal width
+  paddingVertical: 14,
+  borderRadius: 12,
+  alignItems: "center",
+},
+
+secondaryBtn: {
+  backgroundColor: "#D1D5DB",
+  marginRight: 10,        // space between buttons
+},
+
+primaryBtn: {
+  backgroundColor: "#16A34A",
+},
+
+primaryText: {
+  color: "#fff",
+  fontWeight: "bold",
+},
+
+secondaryText: {
+  color: "#065F46",
+  fontWeight: "bold",
+},
   pageTitle: {
     fontSize: 26,
     fontWeight: "bold",

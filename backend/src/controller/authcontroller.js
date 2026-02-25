@@ -376,3 +376,28 @@ export const getAllNGOs = async (req, res) => {
     });
   }
 };
+
+
+// ---------------- GET ALL USERS (Public Access) ----------------
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select("-password -otp -otpExpiry");
+
+    if (!users.length) {
+      return res.status(404).json({ message: "No users found" });
+    }
+
+    res.status(200).json({
+      message: "All users fetched successfully",
+      count: users.length,
+      users,
+    });
+
+  } catch (error) {
+    console.log("Get All Users Error:", error.message);
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};

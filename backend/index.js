@@ -6,6 +6,7 @@ import { connectDB } from './src/config/mongodb.js';
 import authrouter from './src/route/authroute.js';
 import router from './src/route/reportroute.js';
 import aroute from './src/route/admin/aroute.js';
+import routerv from './src/route/volunteerRoutes.js';
 
 
 dotenv.config();
@@ -19,13 +20,15 @@ connectDB();
 app.use("/api/auth",authrouter);
 //report
 app.use("/api/reports", router);
+//volunteer
+app.use("/api/volunteer",routerv);
 //admin
 app.use("/api/admin", aroute);
 
 
-app.use('/',(req,res)=>{
-  res.send("Hello world");
-})
+// app.use('/',(req,res)=>{
+//   res.send("Hello world");
+// })
 
 // app.get("/", (req, res) => {
 //   res.json({ message: "API running" });
