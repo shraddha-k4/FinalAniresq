@@ -25,20 +25,41 @@ export default function Cases() {
     fetchReports();
   }, []);
 
+  // const fetchReports = async () => {
+  //   try {
+  //     const token = await AsyncStorage.getItem("token");
+  //     const res = await axios.get(NGO_Accept_all_Report, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+  //     setReports(res.data.reports || []);
+  //   } catch (error) {
+  //     console.log("Fetch Error:", error.response?.data || error.message);
+  //     setReports([]);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
   const fetchReports = async () => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-      const res = await axios.get(NGO_Accept_all_Report, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setReports(res.data.reports || []);
-    } catch (error) {
-      console.log("Fetch Error:", error.response?.data || error.message);
-      setReports([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const token = await AsyncStorage.getItem("token");
+    const res = await axios.get(NGO_Accept_all_Report, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const sortedReports = (res.data.reports || []).sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+    setReports(sortedReports);
+  } catch (error) {
+    console.log("Fetch Error:", error.response?.data || error.message);
+    setReports([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (loading) {
     return (

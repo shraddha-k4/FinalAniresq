@@ -36,7 +36,7 @@ export default function AlertDetails() {
       />
 
       {/* ACTION BUTTONS */}
-      <View style={styles.buttonRow}>
+      {/* <View style={styles.buttonRow}>
         <TouchableOpacity style={styles.smallBtn}>
           <Text style={styles.smallBtnText}>Download</Text>
         </TouchableOpacity>
@@ -48,7 +48,7 @@ export default function AlertDetails() {
         <TouchableOpacity style={styles.smallBtn}>
           <Text style={styles.smallBtnText}>Report</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       {/* MAIN CARD */}
       <View style={styles.card}>

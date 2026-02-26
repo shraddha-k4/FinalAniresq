@@ -137,14 +137,14 @@ export default function CaseDetails() {
       )}
 
       {/* BUTTONS */}
-      <View style={styles.buttonRow}>
+      {/* <View style={styles.buttonRow}>
         <TouchableOpacity style={styles.saveBtn}>
           <Text>Save Case</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.shareBtn}>
           <Text style={{ color: "#fff" }}>Share Updates</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
     </ScrollView>
   );
 }
