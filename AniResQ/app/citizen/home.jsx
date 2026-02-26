@@ -60,7 +60,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
         <View style={styles.logoContainer}>
           <Image
-            source={require("../../assets/image/aniresq.png")}
+            source={require("../../assets/aniresq.png")}
             style={styles.logoImage}
           />
           <Text style={styles.logo}>AniResQ</Text>

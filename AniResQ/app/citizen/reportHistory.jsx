@@ -271,13 +271,7 @@ export default function ReportHistory() {
               Status: {item.status || "Pending"}
             </Text>
 
-            {/* NGO ACCEPTED */}
-            <Text style={styles.ngo}>
-              Accepted By:{" "}
-              {item.acceptedBy?.name
-                ? item.acceptedBy.name
-                : "Not accepted yet"}
-            </Text>
+           
           </TouchableOpacity>
         )}
       />

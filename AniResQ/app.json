@@ -1,3 +1,35 @@
+// {
+//   "expo": {
+//     "name": "AniResQ",
+//     "slug": "aniresq",
+//     "scheme": "aniresq",
+//     "version": "1.0.0",
+//     "orientation": "portrait",
+//     "icon": "./assets/aniresq.png",
+//     "userInterfaceStyle": "light",
+//     "newArchEnabled": true,
+//     "ios": {
+//       "supportsTablet": true
+//     },
+//     "android": {
+     
+
+//  "adaptiveIcon": {
+//   "foregroundImage": "./assets/aniresq.png",
+//   "backgroundColor": "transparent"
+// },
+//       "package": "com.anonymous.aniresq"
+//     },
+//     "web": {
+//       "favicon": "./assets/img/favicon.png"
+//     },
+//     "plugins": [
+//       "expo-router",
+//       "@react-native-community/datetimepicker"
+//     ]
+//   }
+// }
+
 {
   "expo": {
     "name": "AniResQ",
@@ -8,21 +40,29 @@
     "icon": "./assets/aniresq.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+
+    "splash": {
+      "image": "./assets/aniresq.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+
     "ios": {
       "supportsTablet": true
     },
-    "android": {
-     
 
+    "android": {
+      "package": "com.anonymous.aniresq",
       "adaptiveIcon": {
         "foregroundImage": "./assets/aniresq.png",
-        "backgroundColor": "#1F3D2B"
-      },
-      "package": "com.anonymous.aniresq"
+        "backgroundColor": "#ffffff"
+      }
     },
+
     "web": {
       "favicon": "./assets/img/favicon.png"
     },
+
     "plugins": [
       "expo-router",
       "@react-native-community/datetimepicker"

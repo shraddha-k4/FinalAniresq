@@ -24,7 +24,7 @@ export default function Index() {
       <View style={styles.whiteHeader}>
         <View style={styles.logoRow}>
           <Image
-            source={require("../assets/image/aniresq.png")}
+            source={require("../assets/aniresq.png")}
             style={styles.logo}
             resizeMode="contain"
           />

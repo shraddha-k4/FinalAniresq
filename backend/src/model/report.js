@@ -49,10 +49,7 @@ const reportSchema = new mongoose.Schema(
     aiCare: Object,
     image: {
       type: String, // image path
-    },
-
-    
-   
+    },  
     
    status: {
       type: String,
