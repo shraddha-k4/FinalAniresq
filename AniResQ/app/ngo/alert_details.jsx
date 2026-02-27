@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -5,132 +6,130 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import alert from "./tab/alert";
+import { GetIDAiWildDetection } from "../../Apiendpoint.jsx";
+import axios from "axios";
+import MapView, { Marker } from "react-native-maps";
 
 export default function AlertDetails() {
   const router = useRouter();
+  const { id } = useLocalSearchParams();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDetails();
+  }, []);
+
+  const fetchDetails = async () => {
+    try {
+      const response = await axios.get(GetIDAiWildDetection(id));
+      setData(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center" }}>
+        <ActivityIndicator size="large" color="#0f9d58" />
+      </View>
+    );
+  }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      
+    <ScrollView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() =>  router.push("/ngo/tab/alert")}>
+        <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-
         <Text style={styles.headerTitle}>Alert Details</Text>
-
-        {/* Empty view for perfect center alignment */}
         <View style={{ width: 24 }} />
       </View>
 
       {/* IMAGE */}
-      <Image
-        source={require("../../assets/tiger.jpeg")}
-        style={styles.image}
-        resizeMode="cover"
-      />
+{/* IMAGE ONLY */}
+{data.
+videoUrl && (
+  <View style={{ marginTop: 20, alignItems: 'center' }}>
+    <Image
+      source={{ uri: data.
+videoUrl }}
+      style={{ width: "92%", height: 240, borderRadius: 25 }}
+      resizeMode="cover"
+    />
+  </View>
+)}
+      {/* VIDEO */}
+   {/* {data.videoUrl && (
+  <Video
+    source={{ uri: data.videoUrl }}
+    style={styles.image}
+    useNativeControls
+    resizeMode="contain"
+    isLooping
+    shouldPlay={false} // set true for auto-play
+  />
+)} */}
 
-      {/* ACTION BUTTONS */}
-      {/* <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.smallBtn}>
-          <Text style={styles.smallBtnText}>Download</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.smallBtn}>
-          <Text style={styles.smallBtnText}>Zoom</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.smallBtn}>
-          <Text style={styles.smallBtnText}>Report</Text>
-        </TouchableOpacity>
-      </View> */}
-
-      {/* MAIN CARD */}
+      {/* DETAILS CARD */}
       <View style={styles.card}>
-        <View style={styles.titleRow}>
-          <Text style={styles.animalName}>Bengal Tiger</Text>
-          <View style={styles.alertBadge}>
-            <Text style={styles.alertText}>Critical Alert</Text>
-          </View>
-        </View>
-
+        <Text style={styles.animalName}>{data.animal}</Text>
         <Text style={styles.subText}>
-          Detected on Dec 28, 2024 at 3:45 PM
+          {new Date(data.timestamp).toLocaleString()}
         </Text>
 
         <View style={styles.infoBox}>
-          <Text style={styles.label}>Confidence Level</Text>
-          <Text style={styles.value}>99.2%</Text>
+          <Text>Confidence</Text>
+          <Text>{data.confidence * 100}%</Text>
         </View>
 
         <View style={styles.infoBox}>
-          <Text style={styles.label}>Animal Behavior</Text>
-          <Text style={styles.value}>Moving Towards Village</Text>
+          <Text>Distance</Text>
+          <Text>{data.distance} km</Text>
         </View>
 
         <View style={styles.infoBox}>
-          <Text style={styles.label}>Distance from Settlement</Text>
-          <Text style={styles.value}>2.3 km</Text>
+          <Text>Location</Text>
+          <Text>{data.locationName}</Text>
         </View>
 
         <View style={styles.infoBox}>
-          <Text style={styles.label}>Camera ID</Text>
-          <Text style={styles.value}>CAM-A3-045</Text>
-        </View>
-
-        <Text style={styles.sectionTitle}>Location Details</Text>
-
-        <View style={styles.mapBox}>
-          <Text style={{ color: "#666" }}>Map Preview Here</Text>
-        </View>
-
-        <Text style={styles.locationText}>
-          Sundarbans National Park, Zone A3
-        </Text>
-        <Text style={styles.coordText}>
-          Coordinates: 21.9497° N, 89.1833° E
-        </Text>
-
-        <Text style={styles.sectionTitle}>Detection Timeline</Text>
-
-        <View style={styles.timelineItem}>
-          <View style={styles.dot} />
-          <View>
-            <Text style={styles.timelineTitle}>Animal Detected</Text>
-            <Text style={styles.timelineDesc}>
-              AI system identified Bengal Tiger with 99% confidence
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.timelineItem}>
-          <View style={styles.dot} />
-          <View>
-            <Text style={styles.timelineTitle}>Alert Sent</Text>
-            <Text style={styles.timelineDesc}>
-              Notification sent to forest rangers
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.timelineItem}>
-          <View style={styles.dot} />
-          <View>
-            <Text style={styles.timelineTitle}>
-              Response Team Dispatched
-            </Text>
-            <Text style={styles.timelineDesc}>
-              Wildlife team en route to location
-            </Text>
-          </View>
+          <Text>Coordinates</Text>
+          <Text>
+            {data.latitude}, {data.longitude}
+          </Text>
         </View>
       </View>
 
+      {/* MAP */}
+      {data.latitude && data.longitude && (
+        <MapView
+          style={{ height: 200, margin: 15, borderRadius: 20,overflow: 'hidden' }}
+          initialRegion={{
+            latitude: Number(data.latitude),
+            longitude: Number(data.longitude),
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          }}
+        >
+          <Marker
+            coordinate={{
+              latitude: Number(data.latitude),
+              longitude: Number(data.longitude),
+            }}
+            title={data.locationName}
+            description={data.animal}
+          />
+        </MapView>
+      )}
     </ScrollView>
   );
 }
@@ -140,7 +139,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f7f4",
     flex: 1,
   },
-
   header: {
     backgroundColor: "#0f9d58",
     paddingHorizontal: 20,
@@ -152,38 +150,17 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
-
   headerTitle: {
     color: "#fff",
     fontSize: 20,
     fontWeight: "bold",
   },
-
   image: {
     width: "92%",
     height: 240,
     alignSelf: "center",
-    borderRadius: 20,
-    marginTop: 20, // ❌ overlap removed
-  },
-
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginVertical: 20,
-  },
-
-  smallBtn: {
-    backgroundColor: "#e6f4ea",
-    paddingVertical: 12,
-    paddingHorizontal: 22,
     borderRadius: 25,
-    elevation: 3,
-  },
-
-  smallBtnText: {
-    color: "#0f9d58",
-    fontWeight: "600",
+    marginTop: 20,
   },
 
   card: {
@@ -193,35 +170,14 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     elevation: 8,
   },
-
-  titleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
   animalName: {
     fontSize: 22,
     fontWeight: "bold",
   },
-
-  alertBadge: {
-    backgroundColor: "#ffdddd",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-
-  alertText: {
-    color: "red",
-    fontWeight: "600",
-  },
-
   subText: {
     marginVertical: 10,
     color: "#666",
   },
-
   infoBox: {
     backgroundColor: "#f1f5f2",
     padding: 15,
@@ -229,61 +185,5 @@ const styles = StyleSheet.create({
     marginTop: 10,
     flexDirection: "row",
     justifyContent: "space-between",
-  },
-
-  label: {
-    color: "#444",
-  },
-
-  value: {
-    fontWeight: "bold",
-  },
-
-  sectionTitle: {
-    marginTop: 20,
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#0f9d58",
-  },
-
-  mapBox: {
-    height: 150,
-    backgroundColor: "#e0e0e0",
-    borderRadius: 15,
-    marginVertical: 10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  locationText: {
-    fontWeight: "600",
-  },
-
-  coordText: {
-    color: "#666",
-    marginBottom: 10,
-  },
-
-  timelineItem: {
-    flexDirection: "row",
-    marginTop: 18,
-  },
-
-  dot: {
-    width: 12,
-    height: 12,
-    backgroundColor: "#0f9d58",
-    borderRadius: 6,
-    marginRight: 12,
-    marginTop: 6,
-  },
-
-  timelineTitle: {
-    fontWeight: "bold",
-  },
-
-  timelineDesc: {
-    color: "#666",
-    fontSize: 13,
   },
 });

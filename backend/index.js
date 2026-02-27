@@ -7,6 +7,7 @@ import authrouter from './src/route/authroute.js';
 import router from './src/route/reportroute.js';
 import aroute from './src/route/admin/aroute.js';
 import routerv from './src/route/volunteerRoutes.js';
+import detectionRoutes from './src/route/detectionRoutes.js';
 
 
 dotenv.config();
@@ -24,7 +25,8 @@ app.use("/api/reports", router);
 app.use("/api/volunteer",routerv);
 //admin
 app.use("/api/admin", aroute);
-
+//detection
+app.use("/api/wildDetection", detectionRoutes);
 
 // app.use('/',(req,res)=>{
 //   res.send("Hello world");

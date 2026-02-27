@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,29 +6,41 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-
+import axios from "axios";
+import { GetAiWildDetection } from "../../Apiendpoint.jsx";
+import { Video } from "expo-av";
 export default function WildlifeAlerts() {
   const router = useRouter();
+  const [detections, setDetections] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDetections();
+  }, []);
+
+  const fetchDetections = async () => {
+    try {
+      const response = await axios.get(GetAiWildDetection);
+      setDetections(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.log("Error fetching detections:", error);
+      setLoading(false);
+    }
+  };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      
-      {/* ================= HEADER ================= */}
       <View style={styles.header}>
-        
         <View style={styles.topRow}>
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#ffffff" />
           </TouchableOpacity>
-
           <View style={styles.logoRow}>
-            {/* <Image
-              source={require("../../assets/aniresq.png")}
-              style={styles.logo}
-            /> */}
             <Text style={styles.appName}></Text>
           </View>
         </View>
@@ -38,15 +50,16 @@ export default function WildlifeAlerts() {
           Real-time detection & monitoring
         </Text>
 
-        {/* ================= STATS ================= */}
         <View style={styles.statsRow}>
           <View style={styles.card}>
-            <Text style={styles.statNumber}>0</Text>
+            <Text style={styles.statNumber}>
+              {detections.filter(d => d.status === "Critical Alert").length}
+            </Text>
             <Text style={styles.statText}>Active Alerts</Text>
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.statNumber}>0</Text>
+            <Text style={styles.statNumber}>{detections.length}</Text>
             <Text style={styles.statText}>Total Detected</Text>
           </View>
 
@@ -57,62 +70,76 @@ export default function WildlifeAlerts() {
         </View>
       </View>
 
-      {/* ================= RECENT DETECTIONS ================= */}
       <View style={styles.recentSection}>
         <View style={styles.recentHeader}>
           <Text style={styles.recentTitle}>Recent Detections</Text>
-          <Text style={styles.viewAll}>View All</Text>
         </View>
 
-        <View style={styles.detectCard}>
-          
-        <Image
-  source={require("../../assets/tiger.jpeg")}
-  style={styles.detectImage}
-  resizeMode="cover"
-/>
+        {loading ? (
+          <ActivityIndicator size="large" color="#0f9d58" />
+        ) : (
+          detections.map((item) => (
+            <View key={item._id} style={styles.detectCard}>
+              {item.videoUrl ? (
+  <Image
+    source={{ uri: item.videoUrl }}
+    style={styles.detectImage}
+    resizeMode="cover"
+  />
+) : item.videoUrl ? (
+  <Video
+    source={{ uri: item.videoUrl }}
+    style={styles.detectImage}
+    useNativeControls
+    resizeMode="cover"
+    isLooping
+    shouldPlay={false} // set to true if you want auto-play
+  />
+) : null}
 
-          <View style={styles.detectContent}>
-            
-            <View style={styles.rowBetween}>
-              <Text style={styles.animalName}>Bengal Tiger</Text>
-              <View style={styles.criticalBadge}>
-                <Text style={styles.badgeText}>Critical</Text>
+              <View style={styles.detectContent}>
+                <View style={styles.rowBetween}>
+                  <Text style={styles.animalName}>{item.animal}</Text>
+                  <View style={styles.criticalBadge}>
+                    <Text style={styles.badgeText}>{item.status}</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.location}>
+                  {item.locationName}
+                </Text>
+
+                <View style={styles.rowBetween}>
+                  <Text style={styles.time}>
+                    {new Date(item.timestamp).toLocaleString()}
+                  </Text>
+                  <View style={styles.matchBadge}>
+                    <Text style={styles.matchText}>
+                      {item.confidence}% Match
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.buttonRow}>
+                  <TouchableOpacity
+                    style={styles.detailsBtn}
+                    onPress={() =>
+                      router.push(`/citizen/alert_details?id=${item._id}`)
+                    }
+                  >
+                    <Text style={styles.detailsText}>View Details</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-
-            <Text style={styles.location}>
-              Sundarbans National Park, Zone A3
-            </Text>
-
-            <View style={styles.rowBetween}>
-              <Text style={styles.time}>Detected 12 minutes ago</Text>
-              <View style={styles.matchBadge}>
-                <Text style={styles.matchText}>99% Match</Text>
-              </View>
-            </View>
-
-            <View style={styles.buttonRow}>
-              <TouchableOpacity
-                style={styles.detailsBtn}
-                onPress={() => router.push("/citizen/alert_details")}
-              >
-                <Text style={styles.detailsText}>View Details</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.shareBtn}>
-                <Text style={styles.shareText}>Share Alert</Text>
-              </TouchableOpacity>
-            </View>
-
-          </View>
-        </View>
+          ))
+        )}
       </View>
     </ScrollView>
   );
 }
 
-/* ================= STYLES ================= */
+
 
 const styles = StyleSheet.create({
   container: {

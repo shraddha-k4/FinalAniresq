@@ -84,7 +84,7 @@ const handleShare = async () => {
           name="arrow-back"
           size={24}
           color="#fff"
-          onPress={() => router.back()}
+          onPress={() => router.push("/ngo/tab/cases")}
         />
         <Text style={styles.headerTitle}>Case #{report._id.slice(-5)}</Text>
         <View style={styles.logo} />

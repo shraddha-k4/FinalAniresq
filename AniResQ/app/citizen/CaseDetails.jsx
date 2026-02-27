@@ -5,13 +5,14 @@ import {
   StyleSheet,
   ScrollView,
   Image,
+  Share,
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Get_all_report } from "../../Apiendpoint.jsx";
-
+import MapView, { Marker } from "react-native-maps";
 // Import your default local image
 import DefaultProfile from "../../assets/image/profile.png";
 
@@ -47,6 +48,34 @@ export default function CaseDetails() {
   if (loading) return <Text style={{ padding: 20 }}>Loading...</Text>;
   if (!report) return <Text style={{ padding: 20 }}>Report not found.</Text>;
 
+const handleShare = async () => {
+  try {
+    if (!report) return;
+
+    const latestUpdate = report.updates?.[0];
+
+    let message = `🐾 Animal Rescue Case Update\n\n`;
+    message += `Case ID: ${report._id}\n`;
+    message += `Status: ${report.status}\n`;
+    message += `Location: ${report.address}\n`;
+    message += `Animal Type: ${report.animalType}\n\n`;
+
+    if (latestUpdate) {
+      message += `📌 Latest Update: ${latestUpdate.status || ""}\n`;
+      message += `📝 Description: ${latestUpdate.description || ""}\n`;
+      message += `💊 Vet Notes: ${latestUpdate.veterinaryNotes || ""}\n\n`;
+    }
+
+    message += `Shared via AniResQ App 🐶`;
+
+    await Share.share({
+      message: message,
+    });
+  } catch (error) {
+    console.log("Error sharing:", error);
+  }
+};
+
   return (
     <ScrollView style={styles.container}>
       {/* HEADER */}
@@ -55,7 +84,7 @@ export default function CaseDetails() {
           name="arrow-back"
           size={24}
           color="#fff"
-          onPress={() => router.back()}
+          onPress={() => router.push("/citizen/cases")}
         />
         <Text style={styles.headerTitle}>Case #{report._id.slice(-5)}</Text>
         <View style={styles.logo} />
@@ -107,6 +136,33 @@ export default function CaseDetails() {
         </View>
       </View>
 
+        {/* LOCATION MAP */}
+{report.location?.latitude && report.location?.longitude && (
+  <View style={styles.card}>
+    <Text style={styles.cardTitle}>Reported Location</Text>
+
+    <MapView
+      style={styles.map}
+      initialRegion={{
+        latitude: report.location.latitude,
+        longitude: report.location.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      }}
+    >
+      <Marker
+        coordinate={{
+          latitude: report.location.latitude,
+          longitude: report.location.longitude,
+        }}
+        title="Incident Location"
+        description={report.address}
+      />
+    </MapView>
+  </View>
+)}
+
+
       {/* TIMELINE & TREATMENT */}
       {report.updates?.length > 0 && (
         <View style={styles.card}>
@@ -137,14 +193,14 @@ export default function CaseDetails() {
       )}
 
       {/* BUTTONS */}
-      {/* <View style={styles.buttonRow}>
+      <View style={styles.buttonRow}>
         <TouchableOpacity style={styles.saveBtn}>
           <Text>Save Case</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.shareBtn}>
+        <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
           <Text style={{ color: "#fff" }}>Share Updates</Text>
         </TouchableOpacity>
-      </View> */}
+      </View>
     </ScrollView>
   );
 }
@@ -177,6 +233,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  map: {
+  width: "100%",
+  height: 200,
+  borderRadius: 12,
+},
   headerTitle: { color: "#fff", fontSize: 18, fontWeight: "bold" },
   logo: { width: 30, height: 30 },
   statusRow: { flexDirection: "row", justifyContent: "space-between", padding: 15 },

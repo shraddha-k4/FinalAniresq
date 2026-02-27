@@ -5,7 +5,7 @@ import { Platform } from "react-native";
 export const baseUrl =
   Platform.OS === "web"
     ? "http://localhost:3000"
-    : "http://10.236.97.119:3000"; 
+    : "http://10.192.190.119:3000"; 
 
 
 export const Auth_signup = `${baseUrl}/api/auth/signup`;
@@ -40,3 +40,12 @@ export const Admin_Delete_Report=(id)=>`${baseUrl}/api/admin/delete-report/${id}
 export const sendVolunteerRequest= `${baseUrl}/api/volunteer/send`;
 export const getNgoRequests = `${baseUrl}/api/volunteer/ngo-requests`;
 export const updateRequestStatus=(id)=> `${baseUrl}/api/volunteer/update/${id}`;
+//WildAnimal Detection
+export const AiWildDetection=`${baseUrl}/api/wildDetection/detections`;
+export const GetAiWildDetection=`${baseUrl}/api/wildDetection/getdetections`;
+export const GetIDAiWildDetection=(id)=>`${baseUrl}/api/wildDetection/getdetections/${id}`;
+
+
+
+
+ 
