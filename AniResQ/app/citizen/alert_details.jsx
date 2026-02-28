@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Video } from "expo-av";
 import { GetIDAiWildDetection } from "../../Apiendpoint.jsx";
 import axios from "axios";
 import MapView, { Marker } from "react-native-maps";
@@ -53,19 +54,16 @@ export default function AlertDetails() {
         <Text style={styles.headerTitle}>Alert Details</Text>
         <View style={{ width: 24 }} />
       </View>
-
-      {/* IMAGE */}
-{/* IMAGE ONLY */}
-{data.
-videoUrl && (
-  <View style={{ marginTop: 20, alignItems: 'center' }}>
-    <Image
-      source={{ uri: data.
-videoUrl }}
-      style={{ width: "92%", height: 240, borderRadius: 25 }}
-      resizeMode="cover"
-    />
-  </View>
+        {/* VIDEO */}
+{data.videoUrl && (
+  <Video
+    source={{ uri: data.videoUrl }}
+    style={styles.image}
+    useNativeControls
+    resizeMode="contain"
+    isLooping
+    shouldPlay={false}
+  />
 )}
       {/* VIDEO */}
    {/* {data.videoUrl && (

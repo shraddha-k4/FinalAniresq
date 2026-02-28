@@ -12,26 +12,20 @@ export const createDetection = async (req, res) => {
       distance,
       locationName,
       latitude,
-      longitude
+      longitude,
+      videoUrl: videoUrlFromBody
     } = req.body;
 
-    let videoUrl = "";
+    let videoUrl = videoUrlFromBody || "";
     let publicId = "";
 
-    // ✅ If file exists → upload to Cloudinary
+    // If a file was uploaded directly, override videoUrl
     if (req.file) {
-
       const uploadResult = await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
-          {
-            resource_type: "auto" // image + video auto detect
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
+          { resource_type: "auto" },
+          (error, result) => { if (error) reject(error); else resolve(result); }
         );
-
         stream.end(req.file.buffer);
       });
 
@@ -68,7 +62,6 @@ export const createDetection = async (req, res) => {
     });
   }
 };
-
 
 // GET ALL DETECTIONS (For Frontend Alert Screen)
 export const getAllDetections = async (req, res) => {

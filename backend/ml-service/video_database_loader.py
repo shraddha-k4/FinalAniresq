@@ -190,15 +190,13 @@
 
 
 
-
 """
 AniResQ Video Database Loader with Cloudinary Upload
-Loads and processes videos from a database directory
-and uploads processed media to Cloudinary.
+Loads and processes videos from a database directory,
+uploads media to Cloudinary, and sends detections to ML backend.
 """
 
 import os
-import cv2
 import logging
 import requests
 import json
@@ -208,7 +206,8 @@ from datetime import datetime
 import cloudinary
 import cloudinary.uploader
 from dotenv import load_dotenv
-load_dotenv()  # Make sure you have python-dotenv installed
+
+load_dotenv(dotenv_path=r"C:\Users\Shraddha\Desktop\CapP\aniresqget\AniResQ\backend\.env")
 
 CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
 API_KEY = os.getenv("CLOUDINARY_API_KEY")
@@ -221,7 +220,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Configure Cloudinary (replace with your credentials)
+# Configure Cloudinary
 cloudinary.config(
     cloud_name=CLOUD_NAME,
     api_key=API_KEY,
@@ -288,7 +287,7 @@ class VideoDatabase:
                 result = response.json()
                 return result
             else:
-                logger.error(f"❌ ML Service error: {response.status_code}")
+                logger.error(f"❌ ML Service error: {response.status_code} - {response.text}")
                 return None
 
         except requests.exceptions.Timeout:
@@ -315,6 +314,25 @@ class VideoDatabase:
             logger.error(f"❌ Cloudinary upload failed: {e}")
             return None
 
+    def send_to_backend(self, cctv_id, detections, cloud_url):
+        """Send detection + Cloudinary URL to backend"""
+        try:
+            payload = {
+                'cctv_id': cctv_id,
+                'timestamp': datetime.now().isoformat(),
+                'detections': detections,
+                'total': len(detections),
+                'videoUrl': cloud_url
+            }
+            logger.info(f"📤 Sending detection to backend with videoUrl: {cloud_url}")
+            r = requests.post(f"{self.ml_service_url}/api/wildDetection/detections", json=payload, timeout=30)
+            if r.status_code == 201:
+                logger.info("✅ Alert sent to backend successfully")
+            else:
+                logger.warning(f"⚠️ Backend responded with status {r.status_code} - {r.text}")
+        except Exception as e:
+            logger.error(f"❌ Failed to send alert to backend: {e}")
+
     def process_media_database(self, directory, sample_every_n_frames=5, confidence=0.5, output_file=None):
         """Process all media files in database and upload to Cloudinary"""
         media_files = self.get_media_files(directory)
@@ -338,11 +356,14 @@ class VideoDatabase:
                 # Process video
                 result = self.process_video(media_file, sample_every_n_frames, confidence)
             else:
-                # For images, optionally you could run detection via ML API if supported
+                # For images, optionally run detection via ML API if supported
                 result = {"file_type": "image", "detections": []}
 
             # Upload to Cloudinary
             cloud_url = self.upload_to_cloudinary(media_file)
+
+            # Send to backend with Cloudinary URL
+            self.send_to_backend(cctv_id="aniresq_cam_1", detections=result.get('detections', []), cloud_url=cloud_url)
 
             all_results.append({
                 'file': str(media_file),

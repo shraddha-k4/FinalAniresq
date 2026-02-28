@@ -80,22 +80,16 @@ export default function WildlifeAlerts() {
         ) : (
           detections.map((item) => (
             <View key={item._id} style={styles.detectCard}>
-              {item.videoUrl ? (
-  <Image
-    source={{ uri: item.videoUrl }}
-    style={styles.detectImage}
-    resizeMode="cover"
-  />
-) : item.videoUrl ? (
-  <Video
-    source={{ uri: item.videoUrl }}
-    style={styles.detectImage}
-    useNativeControls
-    resizeMode="cover"
-    isLooping
-    shouldPlay={false} // set to true if you want auto-play
-  />
-) : null}
+                  {item.videoUrl ? (
+                <Video
+                  source={{ uri: item.videoUrl }}
+                  style={styles.detectImage}
+                  useNativeControls
+                  resizeMode="cover"
+                  isLooping
+                  shouldPlay={false} // set true if you want auto-play
+                />
+              ) : null}
 
               <View style={styles.detectContent}>
                 <View style={styles.rowBetween}>
